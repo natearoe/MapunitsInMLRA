@@ -19,30 +19,37 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            numericInput("MLRA", label = "MLRA", value = "18"),
+            textInput("MLRA", label = "MLRA", value = "18"),
             
-            numericInput("Membership", label = "Membership (%)", value = "10")
+            numericInput("Membership", label = "Membership (%)", value = "10"),
+            submitButton(text = "Apply Changes")
         ),
 
         # Show a plot of the generated distribution
         mainPanel(
             tabsetPanel(
-                tabPanel("General Information", tags$h3("Overview:"), "This ShinyApp is designed to help you determine which mapunits 
+                tabPanel("General Information", textOutput("MLRAmember"), tags$head(tags$style("#MLRAmember{color: black;
+                                                                                                        font-size: 22px;
+                                                                                                        font-style: bold;
+                                                                                                        text-decoration: underline
+                                                                                                        }")),
+                
+                tags$h3("Overview:"), "This ShinyApp is designed to help you determine which mapunits 
                                                                               are part of your MLRA. This is accomplished by determining what percent of the total mapunit 
-                                                                              acreage is within your MLRA. The methodology was developed by Dylan Beaudette. The app accesses a 
-                                                                              file that is maintained and will therefore cotinue to be accurate as MLRA and mapunit boundaries change.
+                                                                              acreage is within your MLRA. The methodology was developed by Dylan Beaudette.
                                                                               For more details, please visit", tags$a(href = "https://github.com/ncss-tech/SoilWeb-data",
-                                                                                                    "Soil Web Data."),
+                                                                                                    "Soil Web Data."), "The ShinyApp was developed by", 
+                                                                                                    tags$a(href = "https://github.com/natearoe", "Nathan Roe"),".",
                          tags$h3("Membership:"), "This methodology determines what mapunits belong to an MLRA based on the percentage of mapunit acreage within the MLRA of
                                                   interest. The membership criteria can be adjust using the 'Membership (%)' field. The 'Membership (%)' field defines the minimum 
                                                   percent of mapunit acreage that must be within the MLRA of interest to be considered a member. For example, the default
-                                                  values state that 10% or more of a mapunits acreage must be within MLRA 18 for the mapunit to be listed.",
+                                                  values state that 10% or more of a mapunit's acreage must be within MLRA 18 for the mapunit to be considered a member of MLRA 18.",
                          tags$h3("Tabs"), "There are two other tabs on this ShinyApp. The tab titled 'Group One' lists up to 
                                  2100 mapunits. If there are more than 2100 mapunits within the MLRA, the remaining mapunits will be listed in the tab titled 'Group Two'. 
                                  Results are partitioned because NASIS queries and reports frequently do not allow more than 2100 mapunits to be entered at once.",
-                         tags$h3("SSURGO vs STATSGO (Alaska, take note!)"), "This methodology uses SSURGO delineations of mapunits and does not include STATSGO data. Given that SSURGO
+                         tags$h3("SSURGO data only (Alaska, take note!)"), "This methodology uses SSURGO delineations of mapunits and does not include STATSGO data. Given that SSURGO
                          data is not complete for all areas of the country, this product may not be appropriate for all users. This is likely the case for the majority of Alaska,
-                         where SSURGO data is incomplete or absent in areas",
+                         where SSURGO data is incomplete or absent in most areas.",
                          tags$h3("Are there two groups?"), textOutput("myGroups"), tags$head(tags$style("#myGroups{color: magenta;
                                                                                                         font-size: 17px;
                                                                                                         font-style: italic;
@@ -77,6 +84,10 @@ server <- function(input, output) {
     mu_df <- reactive({
         mu_mlra_assignment %>% mutate(membership_perc = membership * 100) %>% filter(mlra == MLRA_in()) %>% 
             filter(membership_perc >= Membership_in())
+    })
+    
+    output$MLRAmember <- renderText({
+      paste0(print("MLRA "), print(input$MLRA), print(" - membership "), print(input$Membership), print("%"))
     })
     
     output$myGroups <- renderText({
